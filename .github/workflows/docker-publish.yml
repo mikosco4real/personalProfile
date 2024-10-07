@@ -49,7 +49,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.TOKEN }}
 
       # Step 8: Set image tag
       - name: Set image tag
@@ -71,7 +71,7 @@ jobs:
           # tags: ghcr.io/${{ github.repository_owner }}/my-portfolio:${{ steps.tag.outputs.TAG }}
           # Optional: Add multiple tags
           tags: |
-            ghcr.io/${{ github.repository_owner }}/personal-profile:latest
+            ghcr.io/${{ github.repository_owner }}/personal-profile:prod
             ghcr.io/${{ github.repository_owner }}/personal-profile:${{ steps.tag.outputs.TAG }}
           # Optional: Specify platforms for multi-arch
           # platforms: linux/amd64,linux/arm64
