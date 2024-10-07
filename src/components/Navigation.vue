@@ -24,7 +24,7 @@
             type="button"
             class="text-gray-800 hover:text-indigo-600 focus:outline-none focus:text-indigo-600"
             aria-controls="mobile-menu"
-            :aria-expanded="isOpen.toString()"
+            :aria-expanded="isOpen"
           >
             <span class="sr-only">Open main menu</span>
             <!-- Icon when menu is closed -->

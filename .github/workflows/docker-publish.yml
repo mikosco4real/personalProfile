@@ -1,0 +1,90 @@
+name: Build and Publish Docker Image to GHCR
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: Set up QEMU for multi-arch (optional)
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: all
+
+      # Step 3: Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Step 4: Cache Node.js modules
+      - name: Cache Node.js modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # Step 5: Install dependencies
+      - name: Install Dependencies
+        run: npm install
+
+      # Step 6: Run Tests (optional)
+      # - name: Run Tests
+      #   run: npm run test
+
+      # Step 7: Log in to GHCR
+      - name: Log in to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 8: Set image tag
+      - name: Set image tag
+        id: tag
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            TAG=${GITHUB_REF#refs/tags/}
+          else
+            TAG=latest
+          fi
+          echo "TAG=${TAG}" >> $GITHUB_OUTPUT
+
+      # Step 9: Build and push Docker image
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          # tags: ghcr.io/${{ github.repository_owner }}/my-portfolio:${{ steps.tag.outputs.TAG }}
+          # Optional: Add multiple tags
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/personal-profile:latest
+            ghcr.io/${{ github.repository_owner }}/personal-profile:${{ steps.tag.outputs.TAG }}
+          # Optional: Specify platforms for multi-arch
+          # platforms: linux/amd64,linux/arm64
+
+      # Step 10: (Optional) Create GitHub Release (if tagging)
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.tag.outputs.TAG }}
+          release_name: Release ${{ steps.tag.outputs.TAG }}
+          body: 'Docker image built and published to GHCR.'
+          draft: false
+          prerelease: false
