@@ -22,10 +22,28 @@
 
         <!-- Desktop Navigation -->
         <div class="hidden md:flex items-center gap-2">
-          <NavLink to="/" label="Home" />
-          <NavLink to="/about" label="About" />
-          <NavLink to="/projects" label="Projects" />
-          <NavLink to="/contact" label="Contact" />
+          <NavLink 
+            to="/" 
+            label="Home" 
+            :is-active="activeSection === 'home'"
+            @click="scrollToSection('home')"
+          />
+          <NavLink 
+            to="#about" 
+            label="About" 
+            :is-active="activeSection === 'about'"
+            @click="scrollToSection('about')"
+          />
+          <NavLink 
+            to="/projects" 
+            label="Projects" 
+            :is-active="activeSection === 'projects' || route.path === '/projects'"
+          />
+          <NavLink 
+            to="/contact" 
+            label="Contact" 
+            :is-active="activeSection === 'contact' || route.path === '/contact'"
+          />
           
           <div class="ml-4 pl-4 border-l border-border-subtle">
             <router-link 
@@ -60,7 +78,7 @@
     >
       <div class="px-6 py-8 flex flex-col gap-1 text-lg">
         <NavLink to="/" label="Home" @click="closeMenu" />
-        <NavLink to="/about" label="About" @click="closeMenu" />
+        <NavLink to="#about" label="About" @click="() => { closeMenu(); scrollToSection('about') }" />
         <NavLink to="/projects" label="Projects" @click="closeMenu" />
         <NavLink to="/contact" label="Contact" @click="closeMenu" />
         
@@ -79,11 +97,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import NavLink from './NavLink.vue'
 
+const route = useRoute()
 const isOpen = ref(false)
 const scrolled = ref(false)
+const activeSection = ref('home')
 
 const toggleMenu = () => {
   isOpen.value = !isOpen.value
@@ -93,15 +114,83 @@ const closeMenu = () => {
   isOpen.value = false
 }
 
+const scrollToSection = (section: string) => {
+  if (route.path !== '/') {
+    // Navigate to home first, then scroll
+    window.location.href = `/#${section}`
+    return
+  }
+
+  const element = document.getElementById(section === 'home' ? 'hero' : section)
+  if (element) {
+    const offset = 80
+    const bodyRect = document.body.getBoundingClientRect().top
+    const elementPosition = element.getBoundingClientRect().top
+    const offsetPosition = elementPosition - bodyRect - offset
+
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: 'smooth'
+    })
+  }
+  activeSection.value = section
+}
+
+// Scroll spy using Intersection Observer
+let observer: IntersectionObserver | null = null
+
+const setupScrollSpy = () => {
+  const sections = ['hero', 'about', 'projects']
+  
+  observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const sectionId = entry.target.id
+          if (sectionId === 'hero') activeSection.value = 'home'
+          else if (sectionId === 'about') activeSection.value = 'about'
+          else if (sectionId === 'projects') activeSection.value = 'projects'
+        }
+      })
+    },
+    {
+      rootMargin: '-80px 0px -40% 0px',
+      threshold: 0.1
+    }
+  )
+
+  sections.forEach((id) => {
+    const element = document.getElementById(id)
+    if (element) observer?.observe(element)
+  })
+}
+
 const handleScroll = () => {
   scrolled.value = window.scrollY > 20
 }
 
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
+  
+  // Only setup scroll spy on home page
+  if (route.path === '/') {
+    // Wait for DOM
+    setTimeout(setupScrollSpy, 300)
+  }
+})
+
+watch(() => route.path, (newPath) => {
+  if (newPath === '/' && !observer) {
+    setTimeout(setupScrollSpy, 300)
+  } else if (newPath !== '/') {
+    observer?.disconnect()
+    observer = null
+    activeSection.value = 'home'
+  }
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
+  observer?.disconnect()
 })
 </script>

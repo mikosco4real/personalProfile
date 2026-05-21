@@ -20,12 +20,17 @@ import { useRoute } from 'vue-router'
 const props = defineProps<{
   to: string
   label: string
+  isActive?: boolean
 }>()
 
 const emit = defineEmits(['click'])
 
 const route = useRoute()
-const isActive = computed(() => route.path === props.to)
+
+const isActive = computed(() => {
+  if (props.isActive !== undefined) return props.isActive
+  return route.path === props.to
+})
 
 const handleClick = () => {
   emit('click')
