@@ -88,7 +88,7 @@ interface Project {
   links?: ProjectLink[]
 }
 
-const props = defineProps<{
+defineProps<{
   isOpen: boolean
   project: Project
 }>()
