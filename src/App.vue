@@ -1,17 +1,14 @@
 <template>
-  <div class="min-h-screen flex flex-col">
+  <div class="min-h-screen flex flex-col bg-bg-primary text-text-primary">
     <Navigation />
-    <router-view class="flex-grow"></router-view>
+    <main class="flex-grow">
+      <router-view />
+    </main>
     <Footer />
   </div>
 </template>
 
 <script setup lang="ts">
-import Navigation from './components/Navigation.vue';
-import Footer from './components/Footer.vue';
-
+import Navigation from './components/Navigation.vue'
+import Footer from './components/Footer.vue'
 </script>
-
-<style>
-/* Global styles if any */
-</style>

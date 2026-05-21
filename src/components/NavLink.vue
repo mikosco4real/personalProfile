@@ -1,32 +1,39 @@
 <template>
   <RouterLink
     :to="to"
-    class="relative text-gray-800 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition duration-300"
-    :class="{ 'text-indigo-600 font-semibold': isActive }"
-    @click="onClick"
+    class="nav-link relative px-5 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary rounded-xl transition-all duration-200 flex items-center gap-2 group"
+    :class="{ 'text-text-primary font-semibold bg-bg-tertiary': isActive }"
+    @click="handleClick"
   >
     {{ label }}
-    <span v-if="isActive" class="absolute inset-x-0 bottom-0 h-1 bg-indigo-600 rounded-full"></span>
+    <span 
+      v-if="isActive" 
+      class="absolute bottom-1.5 left-5 right-5 h-px bg-accent"
+    />
   </RouterLink>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 
 const props = defineProps<{
-  to: string;
-  label: string;
+  to: string
+  label: string
 }>()
 
-const route = useRoute();
-const isActive = computed<boolean>(() => route.path === props.to)
-const onClick = () => {
-  // Optionally emit an event to close the mobile menu
-  // This can be implemented if the Navigation component handles it
-};
+const emit = defineEmits(['click'])
+
+const route = useRoute()
+const isActive = computed(() => route.path === props.to)
+
+const handleClick = () => {
+  emit('click')
+}
 </script>
 
 <style scoped>
-/* Add any scoped styles if needed */
+.nav-link:hover {
+  background-color: var(--color-bg-tertiary);
+}
 </style>
